@@ -70,17 +70,19 @@ def generateSqr():
 #Processes the rawValues dictionary and fills the outputValues dictionary with final output values
 def processValues():
     for x in rawValues:
-        if x%1 == 0:
-            val = int((rawValues[x]+1)*2048)
-            outputValues.update({x:val})
+        if rawValues[x] <= 0.0:
+            val = int((rawValues[x]+1)*2.5*819.2)
+        else:
+            val = int(((rawValues[x]*5/6)+2.5)*819.2)
+
+        #val = int((rawValues[x]+1)*2048)
+        outputValues.update({x:val})
 
 #Outputs values to the 12 bit DAC (prints values to console just for now)
 def output():
     #while True:
     for x in outputValues:
             print(str(x) + ": " + str(outputValues[x]))
-            if outputValues[x] == 4096:
-                break
             time.sleep(0.01)
 
 if waveform == "sin":
