@@ -1,5 +1,10 @@
 import math
 import time
+import matplotlib.pyplot as plt
+
+#import board
+#import busio
+#import Adafruit_MCP4725
 
 print("RUN")
 
@@ -24,13 +29,14 @@ def inputFrequency():
     return frequency
 
 #Gets valid input for resolution
+#Resolution is the number of outputs per second, independent of frequency.
 def inputRes():
     isValid = False
     while isValid == False:
         res = input("Waveform Resolution(10-1000): ")
         try:
             res = abs(int(res))
-            if res >= 10 and res <= 1000:
+            if res >= 1 and res <= 1000:
                 isValid = True
             else:
                 print("\nPlease enter a number within the range.")
@@ -52,16 +58,22 @@ print("Period: " + str(period) + " sec\n")
 rawValues = {0:0}
 outputValues = {0:0}
 
+#Creates x and y lists used for graphing
+graphX = []
+graphY = []
+for i in range(0, int(math.pi*2*res*period)):
+    graphX.append(i)
+
 #Fills the rawValues dictionary with sin wave values
 def generateSin():
-    for x in range(1,int(math.pi*2*res*period)):
-        value = math.sin(x * frequency * (1.0/res))
-        rawValues.update({x:value})
-        if value<0.001:
-            if value>-0.001:
-                print(x)
+    for i in range(1,int(math.pi*2*res*period)):
+        value = math.sin(i * frequency * (1.0/res))
+        rawValues.update({i:value})
+        if value < 0.001:
+            if value > -0.001:
+                print(i)
 
-#Fills the rawValues dictionary with square wave values
+#Fills the rawValues dictionary with square wave values (not currently working)
 def generateSqr():
     cycleTime = 1.0/frequency/2
     for x in range(1,1000):
@@ -69,14 +81,15 @@ def generateSqr():
 
 #Processes the rawValues dictionary and fills the outputValues dictionary with final output values
 def processValues():
-    for x in rawValues:
-        if rawValues[x] <= 0.0:
-            val = int((rawValues[x]+1)*2.5*819.2)
+    for i in rawValues:
+        if rawValues[i] <= 0.0:
+            val = int((rawValues[i]+1)*2.5*(4096/5))
         else:
-            val = int(((rawValues[x]*5/6)+2.5)*819.2)
+            val = int(((rawValues[i]*5/6)+2.5)*819.2)
 
-        #val = int((rawValues[x]+1)*2048)
-        outputValues.update({x:val})
+        #val = int((rawValues[i]+1)*2048)
+        graphY.append(val)
+        outputValues.update({i:val})
 
 #Outputs values to the 12 bit DAC (prints values to console just for now)
 def output():
@@ -92,8 +105,18 @@ else:
 
 print(rawValues)
 
-trash = input("Press enter to start.")
+temporary = input("Press enter to start.")
 
 
 processValues()
+
+print(graphX)
+print(graphY)
+
+plt.plot(graphX, graphY)
+plt.xlabel('Time')
+plt.ylabel('Dac Output')
+plt.title('Dac Output vs Time')
+plt.show()
+
 output()
